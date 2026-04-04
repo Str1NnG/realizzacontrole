@@ -1,0 +1,11 @@
+<div *ngIf="visible" 
+     (click)="onOverlayClick($event)"
+     class="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
+  
+  <div (click)="onContentClick($event)"
+       [style.max-width]="maxWidth"
+       class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full {{contentClass}}">
+    
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -1,0 +1,235 @@
+<div class="bg-slate-50 dark:bg-slate-900 min-h-screen font-sans p-4 md:p-6">
+  <div class="max-w-screen-xl mx-auto space-y-6">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight">Carteira de Clientes</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Gestão de locais e perímetros de GPS</p>
+      </div>
+      <button (click)="abrirModalNovo()" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-bold text-xs shadow-md shadow-blue-500/20 flex items-center gap-2 transition-all">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+        Novo Cliente
+      </button>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden relative min-h-[400px]">
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-sm text-left">
+          <thead class="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-700/50 border-b dark:border-slate-700">
+            <tr>
+              <th class="px-6 py-4 font-semibold">Cliente</th>
+              <th class="px-6 py-4 font-semibold">Local</th>
+              <th class="px-6 py-4 font-semibold text-center">Valor Base</th>
+              <th class="px-6 py-4 font-semibold text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+            <tr *ngFor="let cliente of clientes" class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+
+              <td class="px-6 py-4 font-bold text-slate-900 dark:text-slate-200">{{ cliente.nome }}</td>
+
+              <!-- ── Coluna de endereço ─────────────────────────────────── -->
+              <td class="px-6 py-4">
+                <div class="flex items-start gap-2">
+                  <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  </svg>
+                  <div>
+                    <!-- Endereço geocodificado em tempo real -->
+                    <p class="font-medium text-slate-700 dark:text-slate-300">
+                      <ng-container *ngIf="cliente.enderecoCarregado; else loadingEndereco">
+                        {{ cliente.enderecoFormatado }}
+                      </ng-container>
+                      <ng-template #loadingEndereco>
+                        <span class="inline-flex items-center gap-1.5 text-slate-400">
+                          <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                          </svg>
+                          Buscando endereço...
+                        </span>
+                      </ng-template>
+                    </p>
+                    <!-- Linha secundária: margem e coordenadas discretas -->
+                    <p class="text-[10px] text-slate-400 mt-0.5">
+                      Margem: {{ cliente.raioTolerancia }}m
+                      <span class="opacity-40 mx-1">·</span>
+                      {{ cliente.latitude | number:'1.4-6' }}, {{ cliente.longitude | number:'1.4-6' }}
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <!-- ────────────────────────────────────────────────────────── -->
+
+              <td class="px-6 py-4 text-center">
+                <span class="px-3 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-lg font-bold">
+                  {{ cliente.valorHora | currency:'BRL' }} /h
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <div class="flex justify-end gap-3">
+                  <button (click)="abrirModalEdicao(cliente)" class="text-blue-600 hover:text-blue-800 transition-colors" title="Editar">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-width="2"/></svg>
+                  </button>
+                  <button (click)="excluirCliente(cliente.id, cliente.nome)" class="text-red-600 hover:text-red-800 transition-colors" title="Excluir">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ═══════════════════════════  MODAL  ═══════════════════════════ -->
+<div *ngIf="isModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-visible border dark:border-slate-700">
+
+    <div class="p-5 border-b dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80 rounded-t-2xl">
+      <h3 class="font-bold text-lg dark:text-slate-200">{{ isEditing ? 'Editar Cliente' : 'Novo Cliente' }}</h3>
+      <button (click)="fecharModal()" class="text-slate-400 hover:text-slate-600 transition-colors text-xl leading-none">✕</button>
+    </div>
+
+    <form [formGroup]="clienteForm" (ngSubmit)="salvarCliente()" class="p-6 space-y-4">
+
+      <!-- Nome -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nome do Cliente / Empresa</label>
+        <input type="text" formControlName="nome" placeholder="Ex: Prefeitura de Solânea"
+          class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- ── Vincular serviço ─────────────────────────────────────────────── -->
+      <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl space-y-2">
+        <p class="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase text-center tracking-wider">
+          Vincular Localização de Serviço Realizado
+        </p>
+
+        <!-- Card do serviço já selecionado -->
+        <div *ngIf="servicoVinculado" class="flex items-center justify-between gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span class="font-bold truncate">
+              #{{ servicoVinculado.id }} · {{ nomeOperador(servicoVinculado) }} · {{ nomeMaquina(servicoVinculado) }}
+            </span>
+          </div>
+          <button type="button" (click)="limparVinculo()" class="shrink-0 opacity-70 hover:opacity-100 transition-opacity text-base leading-none">✕</button>
+        </div>
+
+        <!-- Busca + dropdown -->
+        <div *ngIf="!servicoVinculado" class="relative">
+          <div class="relative">
+            <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M16.65 16.65A7.5 7.5 0 1116.65 2a7.5 7.5 0 010 14.65z" />
+            </svg>
+            <input
+              type="text"
+              [value]="termoBusca"
+              (input)="termoBusca = $any($event.target).value"
+              (focus)="abrirDropdown()"
+              (blur)="fecharDropdown()"
+              placeholder="Buscar por operador, máquina ou local..."
+              autocomplete="off"
+              class="w-full pl-8 pr-3 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+          </div>
+
+          <!-- Lista -->
+          <div *ngIf="dropdownAberto"
+            class="absolute left-0 right-0 top-full mt-1 z-50 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden"
+            style="max-height: 220px; overflow-y: auto;">
+
+            <div *ngIf="servicosFiltrados.length === 0" class="px-4 py-6 text-center text-xs text-slate-400">
+              Nenhum serviço encontrado
+            </div>
+
+            <div *ngFor="let s of servicosFiltrados"
+              (mousedown)="selecionarServico(s)"
+              class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 border-b border-slate-100 dark:border-slate-800 last:border-0 transition-colors">
+
+              <span class="shrink-0 text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-1.5 py-0.5 rounded-md">
+                #{{ s.id }}
+              </span>
+
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                  {{ nomeOperador(s) }} · {{ nomeMaquina(s) }}
+                </p>
+                <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5 flex items-center gap-1">
+                  <svg *ngIf="!s.enderecoCarregado" class="animate-spin w-2.5 h-2.5 shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                  </svg>
+                  <svg *ngIf="s.enderecoCarregado" class="w-2.5 h-2.5 shrink-0 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ s.enderecoCarregado ? s.enderecoFormatado : 'Buscando endereço...' }}
+                </p>
+              </div>
+
+              <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-[9px] text-blue-500/60 dark:text-blue-400/40 text-center italic">
+          {{ servicosRealizados.length }} serviço(s) com GPS disponíveis
+        </p>
+      </div>
+      <!-- ──────────────────────────────────────────────────────────────────── -->
+
+      <!-- Local -->
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Nome do Local / Obra</label>
+        <input type="text" formControlName="localServico" placeholder="Ex: Fazenda Boa Vista - Lote A"
+          class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- Lat / Lon -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Latitude</label>
+          <input type="number" formControlName="latitude"
+            class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Longitude</label>
+          <input type="number" formControlName="longitude"
+            class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-800 border dark:border-slate-700 rounded-lg text-sm text-slate-500 dark:text-slate-400 cursor-not-allowed">
+        </div>
+      </div>
+
+      <!-- Valor / Margem -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Valor/Hora (R$)</label>
+          <input type="number" formControlName="valorHora"
+            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-lg text-sm font-bold text-emerald-600 dark:text-emerald-400 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase mb-2 text-center">Margem GPS (m)</label>
+          <input type="number" formControlName="raioTolerancia"
+            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-orange-500">
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="pt-4 flex gap-3">
+        <button type="button" (click)="fecharModal()"
+          class="flex-1 py-2.5 bg-slate-100 dark:bg-slate-700 dark:text-white rounded-lg font-bold text-xs transition-all hover:bg-slate-200 dark:hover:bg-slate-600">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="clienteForm.invalid || isLoading"
+          class="flex-1 py-2.5 bg-blue-600 text-white rounded-lg font-bold text-xs hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          Salvar Cliente
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+<div class="flex h-screen bg-gray-100 dark:bg-gray-900 font-sans">
+  
+  <app-sidebar [isExpanded]="isSidebarExpanded" (toggle)="toggleSidebar()"></app-sidebar>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <app-navbar></app-navbar>
+
+    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-200 dark:bg-gray-900">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

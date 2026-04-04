@@ -1,0 +1,16 @@
+a.active {
+    background-color: #e0f2f1; /* Verde bem claro */
+    color: #004D40;
+    font-weight: 600;
+}
+
+/* Estilo para o link ativo no modo noturno */
+.dark a.active {
+    background-color: #263238; /* Cinza escuro */
+    color: #eceff1;
+}
+
+/* Oculta o texto quando a sidebar está recolhida para evitar quebra de layout */
+aside:not(.w-64) nav span, aside:not(.w-64) .p-4 span {
+  display: none;
+}

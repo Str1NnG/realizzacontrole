@@ -1,0 +1,75 @@
+/* Cria um container que ocupa a tela inteira e centraliza seu conteúdo */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* 100% da altura da tela */
+    background-color: #f5f5f5;
+    font-family: 'Poppins', sans-serif; /* Se quiser usar a mesma fonte do app */
+}
+
+/* O formulário em si, com estilo de "card" */
+form {
+    display: flex;
+    flex-direction: column;
+    padding: 40px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Estilo para os títulos dentro do formulário */
+form h2, form p {
+    text-align: center;
+    color: #37474F;
+    margin-top: 0;
+}
+
+form h2 {
+    color: #004D40; /* Verde escuro do seu app */
+    font-weight: 600;
+}
+
+form p {
+    margin-bottom: 30px;
+}
+
+/* Estilo para o campo de CPF */
+input[type="text"] {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #00796B; /* Verde mais claro no foco */
+}
+
+/* Estilo para o botão de Entrar */
+button {
+    padding: 12px;
+    background-color: #004D40;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #00695C;
+}
+
+/* Estilo para a mensagem de erro */
+.error {
+    color: #f44336;
+    text-align: center;
+    margin-top: 15px;
+}

@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../../gestaodemaquinas/gestao_maquinas_app"
+		},
+		{
+			"path": "../../../../.."
+		},
+		{
+			"path": "../../../.."
+		}
+	],
+	"settings": {
+		"java.configuration.updateBuildConfiguration": "interactive"
+	}
+}

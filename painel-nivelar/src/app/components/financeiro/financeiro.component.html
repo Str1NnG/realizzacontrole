@@ -1,0 +1,330 @@
+<div class="bg-slate-50 dark:bg-slate-900 min-h-screen p-4 md:p-6 font-sans">
+  <div class="max-w-screen-2xl mx-auto space-y-6">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-200 tracking-tight">Controle Financeiro</h1>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Gestão de faturamento e recibos retroativos</p>
+      </div>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button (click)="abrirModalManual()" class="flex-1 sm:flex-none px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg hover:bg-blue-700 shadow-sm flex items-center justify-center gap-2 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          Lançamento Manual
+        </button>
+        <button (click)="exportarExcel()" class="flex-1 sm:flex-none px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 shadow-sm flex items-center justify-center gap-2 transition-all">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+          Exportar Excel
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border-l-4 border-amber-500 p-5">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valores a Receber</span>
+        <p class="text-3xl font-black text-slate-900 dark:text-slate-100 mt-1">{{ totalPendente | currency:'BRL' }}</p>
+      </div>
+      <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border-l-4 border-emerald-500 p-5">
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Valor Recebido</span>
+        <p class="text-3xl font-black text-slate-900 dark:text-slate-100 mt-1">{{ totalRecebido | currency:'BRL' }}</p>
+      </div>
+    </div>
+
+    <section class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden relative">
+      <div class="p-5 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/80">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+          <div class="lg:col-span-4 flex gap-2">
+            <div class="flex-1">
+              <label class="block mb-1 text-[10px] font-bold text-slate-500 uppercase">Início</label>
+              <input type="date" [(ngModel)]="dataInicio" (change)="applyFilters()" class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex-1">
+              <label class="block mb-1 text-[10px] font-bold text-slate-500 uppercase">Fim</label>
+              <input type="date" [(ngModel)]="dataFim" (change)="applyFilters()" class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <div class="lg:col-span-4 h-9 bg-slate-200/50 dark:bg-slate-900 p-1 rounded-lg flex text-[10px] font-bold">
+            <button (click)="statusFilter = 'TODOS'; applyFilters()" [ngClass]="statusFilter === 'TODOS' ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'" class="flex-1 rounded-md transition-all uppercase">Todos</button>
+            <button (click)="statusFilter = 'PENDENTE'; applyFilters()" [ngClass]="statusFilter === 'PENDENTE' ? 'bg-white dark:bg-slate-700 text-amber-600 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'" class="flex-1 rounded-md transition-all uppercase">Pendentes</button>
+            <button (click)="statusFilter = 'PAGO'; applyFilters()" [ngClass]="statusFilter === 'PAGO' ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'" class="flex-1 rounded-md transition-all uppercase">Pagos</button>
+          </div>
+          <div class="lg:col-span-4">
+            <label class="block mb-1 text-[10px] font-bold text-slate-500 uppercase">Buscar</label>
+            <input type="text" [(ngModel)]="searchQuery" (input)="applyFilters()" placeholder="Filtrar..." class="w-full h-9 px-3 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-slate-200 outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="selectedIds.size > 0" class="absolute top-0 left-0 w-full h-[81px] bg-blue-600 flex items-center justify-between px-6 z-20 shadow-md animate-fade-in">
+        <div class="flex items-center gap-3">
+          <span class="w-6 h-6 bg-white text-blue-600 rounded-full flex items-center justify-center font-bold text-xs">{{ selectedIds.size }}</span>
+          <span class="text-white font-semibold text-sm">Serviços Selecionados</span>
+        </div>
+        <div class="flex gap-2">
+          <button (click)="imprimirRecibo('lote')" class="px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">IMPRIMIR RECIBOS</button>
+          <button (click)="marcarComoPago()" class="px-4 py-2 bg-white text-blue-600 text-xs font-bold rounded-lg hover:bg-slate-100 transition-colors">MARCAR PAGOS</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto min-h-[350px]">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-50 dark:bg-slate-700/50 text-[10px] font-bold text-slate-500 uppercase border-b border-slate-100 dark:border-slate-700">
+            <tr>
+              <th class="px-4 py-3 text-center w-10"><input type="checkbox" [checked]="isAllSelected()" (change)="toggleAll($event)" class="rounded border-slate-300 text-blue-600"></th>
+              <th class="px-4 py-3">Serviço & Data</th>
+              <th class="px-4 py-3">Cliente / Obra</th>
+              <th class="px-4 py-3 text-center">Horas</th>
+              <th class="px-4 py-3 text-right">Valor do Serviço</th>
+              <th class="px-4 py-3 text-center">Status</th>
+              <th class="px-4 py-3 text-center w-24">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+            <tr *ngFor="let reg of registrosFiltrados" class="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+              <td class="px-4 py-3 text-center">
+                <input type="checkbox" *ngIf="reg.statusPagamento === 'PENDENTE'" [checked]="selectedIds.has(reg.id)" (change)="toggleSelection(reg.id)" class="rounded border-slate-300 text-blue-600">
+              </td>
+              <td class="px-4 py-3">
+                <div class="font-bold text-slate-900 dark:text-slate-100 uppercase">{{ reg.operador?.nome }}</div>
+                <div class="text-[10px] text-slate-500">{{ reg.data | date:'dd/MM/yyyy' }} • {{ reg.operador?.maquina?.nome }}</div>
+              </td>
+              <td class="px-4 py-3">
+                <div class="font-medium text-slate-700 dark:text-slate-300 uppercase">{{ reg.cliente || reg.clienteDetalhe?.nome }}</div>
+                <div class="text-[10px] text-slate-400 truncate max-w-[150px]">{{ reg.clienteDetalhe?.localServico }}</div>
+              </td>
+              <td class="px-4 py-3 text-center font-bold text-blue-600">{{ (reg.horimetroFinal - reg.horimetroInicial) | number:'1.1-2' }}h</td>
+              <td class="px-4 py-3 text-right font-black text-slate-900 dark:text-white">{{ reg.valorCalculadoFinal | currency:'BRL' }}</td>
+              <td class="px-4 py-3 text-center">
+                <span class="px-2 py-1 rounded-md text-[9px] font-bold" [ngClass]="reg.statusPagamento === 'PAGO' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'">{{ reg.statusPagamento }}</span>
+              </td>
+              <td class="px-4 py-3 text-center flex justify-center gap-1">
+                <button (click)="abrirModalEdicao(reg)" class="p-1.5 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Editar"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></button>
+                <button (click)="imprimirRecibo('unico', reg)" class="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors" title="Imprimir"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div *ngIf="isEditModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+    <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80">
+      <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Editar Serviço #{{ registroEmEdicao?.id }}</h3>
+      <button (click)="isEditModalOpen = false" class="text-slate-400 hover:text-red-500 font-bold text-xl">×</button>
+    </div>
+    
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5" *ngIf="registroEmEdicao">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Data</label>
+        <input type="date" [(ngModel)]="registroEmEdicao.data" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm dark:text-white">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Serviço Descrição</label>
+        <input type="text" [(ngModel)]="registroEmEdicao.servico" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm dark:text-white">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horímetro Inicial</label>
+        <input type="number" [(ngModel)]="registroEmEdicao.horimetroInicial" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm dark:text-white">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horímetro Final</label>
+        <input type="number" [(ngModel)]="registroEmEdicao.horimetroFinal" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm dark:text-white">
+      </div>
+
+      <div class="col-span-1 md:col-span-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl p-4 flex items-center justify-between">
+        <div>
+          <p class="text-[10px] font-bold text-blue-500 uppercase tracking-widest">Coordenadas GPS (App)</p>
+          <p class="text-sm font-bold text-blue-900 dark:text-blue-300 mt-0.5" *ngIf="registroEmEdicao.latitude">Lat: {{ registroEmEdicao.latitude | number:'1.4-4' }}, Lng: {{ registroEmEdicao.longitude | number:'1.4-4' }}</p>
+          <p class="text-sm font-bold text-slate-400 mt-0.5" *ngIf="!registroEmEdicao.latitude">Sem dados de GPS</p>
+        </div>
+        <a *ngIf="registroEmEdicao.latitude" [href]="'https://www.google.com/maps/search/?api=1&query=' + registroEmEdicao.latitude + ',' + registroEmEdicao.longitude" target="_blank" class="px-4 py-2 bg-white text-blue-600 font-bold text-xs rounded-lg shadow-sm border border-blue-200 hover:bg-blue-600 hover:text-white transition-all">
+          Ver no Mapa
+        </a>
+      </div>
+    </div>
+    
+    <div class="p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex gap-3 justify-end">
+      <button (click)="isEditModalOpen = false" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-300">Cancelar</button>
+      <button (click)="salvarEdicao()" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 flex items-center gap-2">
+        <span *ngIf="isLoading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+        Salvar Alterações
+      </button>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="isManualModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+  <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 animate-fade-in">
+    <div class="p-5 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/80">
+      <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        Novo Lançamento Retroativo
+      </h3>
+      <button (click)="isManualModalOpen = false" class="text-slate-400 hover:text-red-500 font-bold text-xl">×</button>
+    </div>
+    
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Data do Serviço</label>
+        <input type="date" [(ngModel)]="novoRegistro.data" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Status do Pagamento</label>
+        <select [(ngModel)]="novoRegistro.statusPagamento" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+          <option value="PENDENTE">Pendente</option>
+          <option value="PAGO">Já Pago</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Operador Responsável *</label>
+        <select [(ngModel)]="novoRegistro.operadorId" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+          <option [value]="undefined" class="dark:text-slate-400">Selecione o Operador...</option>
+          <option *ngFor="let op of operadores" [value]="op.id">{{ op.nome }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Cliente / Obra</label>
+        <select [(ngModel)]="novoRegistro.clienteId" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+          <option [value]="undefined" class="dark:text-slate-400">Nenhum / Cliente Geral</option>
+          <option *ngFor="let cli of clientes" [value]="cli.id">{{ cli.nome }}</option>
+        </select>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Descrição do Serviço</label>
+        <input type="text" [(ngModel)]="novoRegistro.servico" placeholder="Ex: Nivelamento de Terreno..." class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Horímetro Inicial</label>
+        <input type="number" [(ngModel)]="novoRegistro.horimetroInicial" placeholder="0.0" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Horímetro Final</label>
+        <input type="number" [(ngModel)]="novoRegistro.horimetroFinal" placeholder="0.0" class="w-full h-10 px-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="md:col-span-2 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 rounded-lg">
+        <label class="block text-xs font-bold text-amber-700 dark:text-amber-500 uppercase mb-1">Valor Cobrado Manualmente (Opcional)</label>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-500">R$</span>
+          <input type="number" [(ngModel)]="novoRegistro.valorFaturado" placeholder="Se deixares em branco, o sistema calcula pelas horas" class="flex-1 h-10 px-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg outline-none text-sm font-bold text-slate-900 dark:text-emerald-400 focus:ring-2 focus:ring-amber-500">
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-5 border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex gap-3 justify-end">
+      <button (click)="isManualModalOpen = false" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-bold rounded-xl hover:bg-slate-300 transition-all">Cancelar</button>
+      <button (click)="salvarLancamentoManual()" [disabled]="isLoading" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 flex items-center gap-2 disabled:opacity-50 transition-all">
+        <span *ngIf="isLoading" class="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+        Gravar Lançamento
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="print-receipt" *ngIf="recibosToPrint.length > 0" class="bg-white font-sans print:pb-0 print:m-0" style="-webkit-print-color-adjust: exact; print-color-adjust: exact;">
+  
+  <style>
+    @media print {
+      /* Margem segura de 5mm para as impressoras não cortarem as bordas */
+      @page { size: A4 portrait; margin: 5mm; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
+    }
+  </style>
+
+  <div class="w-[200mm] mx-auto grid grid-cols-2 gap-[4mm] place-content-start">
+    
+    <div *ngFor="let rec of recibosToPrint" class="w-[98mm] h-[140mm] border border-slate-300 shadow-sm rounded-xl p-4 box-border flex flex-col bg-white relative overflow-hidden" style="page-break-inside: avoid;">
+      
+      <div class="flex justify-between items-center mb-3">
+        <div class="w-24">
+          <img src="/logo_realizza.png" alt="Logo Realizza" class="w-full h-auto max-h-10 object-contain object-left" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+          <div class="hidden text-[11px] font-black text-slate-900 leading-tight">REALIZZA<br>ENGENHARIA</div>
+        </div>
+        <div class="text-right">
+          <h2 class="text-[14px] font-black text-slate-900 tracking-tight uppercase leading-none">Recibo de Serviço</h2>
+          <p class="text-[7px] font-medium text-slate-500 mt-1">Controle Operacional e Faturamento</p>
+          <p class="text-[8px] font-bold text-slate-900 mt-0.5">Emissão: {{ rec.emissao | date:'dd/MM/yyyy' }}</p>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="bg-slate-900 text-white px-2 py-1 text-[7px] font-bold uppercase tracking-widest rounded-t-md">
+          Informações do Cliente e Local
+        </div>
+        <div class="border border-t-0 border-slate-300 rounded-b-md p-2 grid grid-cols-2 gap-2 bg-slate-50">
+          <div>
+            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Cliente / Razão Social</p>
+            <p class="text-[10px] font-bold text-slate-900 uppercase leading-tight truncate">{{ rec.cliente }}</p>
+          </div>
+          <div>
+            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Local do Serviço</p>
+            <p class="text-[10px] font-bold text-slate-900 uppercase leading-tight truncate">{{ rec.local }}</p>
+            <p *ngIf="rec.latitude" class="text-[7px] font-bold text-blue-600 mt-0.5 flex items-center gap-0.5">
+              GPS: {{rec.latitude|number:'1.4-4'}}, {{rec.longitude|number:'1.4-4'}}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-3 flex-1">
+        <div class="bg-slate-900 text-white px-2 py-1 text-[7px] font-bold uppercase tracking-widest rounded-t-md">
+          Detalhamento Operacional
+        </div>
+        <div class="border border-t-0 border-slate-300 rounded-b-md p-2 bg-slate-50 h-full">
+          <div class="mb-2 pb-2 border-b border-slate-200">
+            <p class="text-[7px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Descrição do Serviço</p>
+            <p class="text-[10px] font-bold text-slate-900 uppercase leading-tight line-clamp-2">{{ rec.servico }}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <p class="text-[7px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Operador Responsável</p>
+              <p class="text-[9px] font-bold text-slate-900 uppercase truncate">{{ rec.operador }}</p>
+            </div>
+            <div>
+              <p class="text-[7px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Máquina / Equipamento</p>
+              <p class="text-[9px] font-bold text-slate-900 uppercase truncate">{{ rec.maquina }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <table class="w-full text-left border border-slate-300 rounded-md overflow-hidden border-collapse">
+          <thead class="bg-slate-900 text-white">
+            <tr>
+              <th class="px-2 py-1.5 text-[7px] font-bold uppercase tracking-widest">Horas</th>
+              <th class="px-2 py-1.5 text-[7px] font-bold uppercase tracking-widest text-right">Valor/Hora</th>
+              <th class="px-2 py-1.5 text-[7px] font-bold uppercase tracking-widest text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            <tr>
+              <td class="px-2 py-2 text-[10px] font-bold text-slate-900 border-t border-slate-300">{{ rec.horas | number:'1.1-2' }}h</td>
+              <td class="px-2 py-2 text-[10px] font-bold text-slate-900 text-right border-t border-slate-300">{{ rec.valorHora | currency:'BRL' }}</td>
+              <td class="px-2 py-2 text-[14px] font-black text-blue-600 text-right border-t border-slate-300">{{ rec.total | currency:'BRL' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-auto flex justify-between items-end px-2 mb-2">
+        <div class="w-24 text-center">
+          <div class="border-t-2 border-slate-400 mb-1"></div>
+          <p class="text-[7px] font-bold text-slate-900 uppercase truncate">{{ rec.cliente }}</p>
+          <p class="text-[6px] font-bold text-slate-500 uppercase mt-0.5">Assinatura do Cliente</p>
+        </div>
+        <div class="w-24 text-center">
+          <div class="border-t-2 border-slate-400 mb-1"></div>
+          <p class="text-[7px] font-bold text-slate-900 uppercase truncate">{{ nomeEmpresaUsuario }}</p>
+          <p class="text-[6px] font-bold text-slate-500 uppercase mt-0.5">Prestador do Serviço</p>
+        </div>
+      </div>
+
+      <div class="text-center border-t border-slate-200 pt-2">
+        <p class="text-[7px] font-semibold text-slate-400">Doc. interno • Ref: #{{ rec.id }} • Realizza Controle</p>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==================================================== */
+/* MÁGICA DE IMPRESSÃO (BLINDADA)                       */
+/* ==================================================== */
+
+@media screen {
+  /* Esconde o recibo na tela do computador */
+  #print-receipt {
+    display: none !important;
+  }
+}
+
+@media print {
+  /* 1. Torna TUDO invisível (não quebra o layout, só esconde) */
+  body * {
+    visibility: hidden;
+  }
+
+  /* 2. Torna visível APENAS a área do recibo */
+  #print-receipt, #print-receipt * {
+    visibility: visible;
+  }
+
+  /* 3. Arranca o recibo de onde estiver e cola no topo da folha */
+  #print-receipt {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}
